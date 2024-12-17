@@ -1,0 +1,22 @@
+Assignment name  : binary_search
+Expected files   : binary_search.c
+Allowed functions: none
+--------------------------------------------------------------------------------
+
+Implement a function that searches for a given value in a binary search tree.
+The function should return 1 if the value is found in the tree, otherwise it
+should return 0.
+
+The function should be declared as follows:
+int search_binary_tree(t_btree *root, int value);
+
+ft_btree.h:
+
+typedef struct s_btree 
+{
+	int					value;
+	struct s_btree		*left;
+	struct s_btree		*right;
+}t_btree;
+
+The tree will not be ordered in any specific way.

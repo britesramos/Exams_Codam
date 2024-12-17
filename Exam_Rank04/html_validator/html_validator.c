@@ -6,7 +6,7 @@
 /*   By: sramos <sramos@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/12/17 15:47:08 by sramos        #+#    #+#                 */
-/*   Updated: 2024/12/17 16:05:34 by sramos        ########   odam.nl         */
+/*   Updated: 2024/12/17 16:07:10 by sramos        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,6 @@ int	main(int argc, char *argv[])
 						}
 						strncpy(array[a], &argv[1][i - j], j);
 					}
-
 				}
 			}
 			j = 0;

@@ -1,0 +1,32 @@
+Assignment name  : html_validator
+Expected files   : html_validator.c
+Allowed functions: write, malloc, free, strncmp, strncpy
+--------------------------------------------------------------------------------
+
+Write a program that takes one string in arguments.
+The string will contain HTML tags and some content.
+The program return 0 if the HTML tags are properly nested and closed in the
+correct order, otherwise it returns 1.
+If there are no arguments the program returns 1.
+
+<test> is a opening tag
+</test> is a closing tag
+
+'<img>' is an exception to the rule, it's a self closing tag.
+A self closing tag is a tag thta has no content and is closed immediately.
+
+<test><img text text></test> is valid.
+
+An openning tag must always be closed by the corresponding closing tag in
+the correct order. A string that does not contain any tag is considered as a 
+correctly formatted string.
+
+Examples:
+./html_validator "<h1></h1>"; echo $?
+0
+
+./html_validator "<img balblabla><h1></h1>"; echo $?
+0
+
+./html_validator "<html><head>"; echo $?
+1
