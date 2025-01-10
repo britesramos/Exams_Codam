@@ -6,7 +6,7 @@
 /*   By: sramos <sramos@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/12/17 15:47:08 by sramos        #+#    #+#                 */
-/*   Updated: 2024/12/17 16:07:10 by sramos        ########   odam.nl         */
+/*   Updated: 2025/01/10 12:30:26 by sramos        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ int	main(int argc, char *argv[])
 		return (1);
 	else if (argc == 2)
 	{
-		array = ft_calloc(sizeof(char *), 1024);
+		array = ft_calloc(sizeof(char *), 1024); //alloc for array (doesnt matter the size)
 		while (argv[1][i])
 		{
 			if (argv[1][i] == '<')
@@ -80,27 +80,27 @@ int	main(int argc, char *argv[])
 						}
 						j++;
 					}
-					if (strncmp(&argv[1][i], array[a], j) == 0)
+					if (strncmp(&argv[1][i], array[a], j) == 0) // if closing tag matches last entry in the array, null it and a--.
 					{
 						array[a] = NULL;
 						a--;
 					}
-					else
+					else //If there is no match, return 1 (ERROR).
 					{
-						ft_free(array);
+						ft_free(array); 
 						return (1);
 					}
 					i = i + j;
 				}
-				else if (argv[1][i])
+				else if (argv[1][i]) //If it is opening tag.
 				{
-					if (strncmp(&argv[1][i], "img", 3) == 0)
+					if (strncmp(&argv[1][i], "img", 3) == 0) //If it is "img" just skip it.
 						i = i + 3;
 					else
 					{
-						if (array[a] != NULL)
+						if (array[a] != NULL) //If the array has already something move to the next to add the new entry.
 							a++;
-						while (alnumdigit(argv[1][i]) == 0 || argv[1][i] == '_')
+						while (alnumdigit(argv[1][i]) == 0 || argv[1][i] == '_') //Add to array
 						{
 							if (!argv[1][i])
 							{
@@ -111,7 +111,7 @@ int	main(int argc, char *argv[])
 							i++;
 							j++;
 						}
-						strncpy(array[a], &argv[1][i - j], j);
+						strncpy(array[a], &argv[1][i - j], j); //Copy to array.
 					}
 				}
 			}
