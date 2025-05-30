@@ -1,0 +1,22 @@
+Allowed functions: malloc
+
+Implement a function that inserts a new node with a given value into a binary search tree.
+The function should return a pointer to the root node of the modified binary search tree.
+The function should be declared as follows:
+
+t_btree* insert_binary_tree(t_btree* root, int value);
+
+you have to use the ft_btree.h file, which will ONLY contain:
+
+typedef struct s_btree
+{
+	int value;
+	struct s_btree *left;
+	struct s_btree *right;
+}	t_btree;
+
+If the root node is NULL return the new node as root.
+Duplicate values should be ignored.
+Values bigger than the root should be insert in the right subtree.
+Values smaller than the root should be insert in the left subtree.
+Values will always be inserted at the END of a subtree.
