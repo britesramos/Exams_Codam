@@ -86,12 +86,14 @@ int main(int argc, char **argv)
 
 	if (argc == 3)
 	{
+		//1)Check if input is zero.
 		if (s1[0] == '0' || s2[0] == '0')
 		{
 			write(1, "0", 1);
 			write(1, "\n", 1);
 			return (0);
 		}
+		//2)Sign check. (Don't forget to move the pointer if there is a sign.)
 		if (s1[0] == '-')
 		{
 			sign1 = 1;
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
 		}
 		signres = sign1 + sign2;
 		res = infin_mul(s1, s2);
-		if (signres == 1)
+		if (signres == 1) //Write the sign ig signres is one.
 			write(1, "-", 1);
 		ft_putstr(res);
 		write(1, "\n", 1);
