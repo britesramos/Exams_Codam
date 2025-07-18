@@ -1,0 +1,20 @@
+Allowed function: open, close, read, write, malloc, free, realloc, mmap,
+				  munmap, fstat
+
+--------------------------------------------------------------------------------
+
+Write a program that takes a file as an argument.
+
+This file represents a 2D grid of characters, with each character being either
+'.' or 'X', representing water and land, respectively.
+Each line in the file (including the last one) ends with a newline, and all 
+lines are of equal lenght. The maximum size of grid is 1000 x 1000.
+
+A "land" character ('X') is said to be connected to another "land" character
+if they are adjacent horizontal or vertically (but not diagonally).
+
+Your task is to write a program that reads this grid from the input file and
+displays the size of the largest island on stdout followed by a '\n'.
+
+If the file is empty, or there is an error (such as inconsistent line lenght
+or invalid characters), your program should print "Map Error\n".
