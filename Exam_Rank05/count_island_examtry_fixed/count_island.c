@@ -18,26 +18,15 @@ void ft_putcharpointer(char **pointer)
     int i = 0;
     while (pointer[i])
     {
-
-        // printf("%i\n", i);
         ft_putstr(pointer[i]);
         write(1, "\n", 1);
         i++;
     }
-    // ft_putstr(pointer[i]);
-    // write(1, "\n", 1);
 }
 
 void ft_putchar(char c)
 {
     write(1, &c, 1);
-}
-
-void ft_itoa(int n)
-{
-    if(n >= 10)
-        ft_itoa(n / 10);
-    ft_putchar ((n % 10) + '0');
 }
 
 int ft_strlen(char *str)
@@ -116,11 +105,8 @@ char* read_file(int fd)
 int ft_len_first_row(char *buffer)
 {
     int len = 0;
-    while (buffer[len] != '\n' && len < 1024){
-        // write(1, "2HELLLOOOO!\n", 12);
+    while (buffer[len] != '\n' && len < 1024)
         len++;
-
-    }
     return (len);
 }
 
@@ -134,7 +120,6 @@ int ft_count_rows(char *buffer, int first_row_len)
         if (buffer[i] != 'X' && buffer[i] != '.' && buffer[i] != '\n')
             return (-1);
         if (buffer[i] == '\n'){
-            // printf("ROW_LEN: %i\n", row_len); //temp
             if (row_len == 0 || row_len != first_row_len)
                 return (-1);
             count_rows++;
@@ -144,10 +129,6 @@ int ft_count_rows(char *buffer, int first_row_len)
             row_len++;
         i++;
     }
-    // if (row_len == 0 || row_len != first_row_len){
-    //     // printf("EXTRA CHECK!\n\n"); //temp
-    //     return (-1);
-    // }
     count_rows++;
     return (count_rows);
 }
