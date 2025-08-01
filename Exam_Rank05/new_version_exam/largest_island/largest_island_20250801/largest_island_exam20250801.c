@@ -64,7 +64,7 @@ char* ft_strjoin(char *buffer, char* temp)
     int len_buffer = ft_strlen(buffer);
     int len_temp = ft_strlen(temp);
     char *res = NULL;
-    res = malloc((len_buffer + len_temp + 1) * sizeof(char));
+    res = malloc((len_buffer + len_temp) + 1 * sizeof(char));
     if (!res)
         return (NULL);
     while (i < len_buffer)
@@ -77,8 +77,7 @@ char* ft_strjoin(char *buffer, char* temp)
         res[i + j] = temp[j];
         j++;
     }
-    res[i + j] = '\0'; // Always null terminate
-    free(buffer); // Free the old buffer
+    // res[i + j] = '\0'; //CHANGED
     return (res); 
 }
 
@@ -103,20 +102,23 @@ char* read_file(int fd)
         free(buffer);
         return (NULL);
     }
-    while (bytes_read == 5) // Only continue if buffer was full
+    while (bytes_read == 5 || bytes_read > 0)
     {
         bytes_read = read(fd, temp, 5);
-        if (bytes_read <= 0)
+        if (bytes_read == 0)
             break ;
-        temp[bytes_read] = '\0'; // Null terminate temp
         buffer = ft_strjoin(buffer, temp);
         if (!buffer)
         {
             free(temp);
             return (NULL);
         }
+        // for(int i = 0; i < 4; ++i)
+        //     temp[i] = '\0';
     }
-    free(temp);
+    // ft_putstr(buffer);
+    // write(1, "---\n", 4);
+    // write(1,"HELLO!\n", 7); //temp
     return (buffer);
 }
 
@@ -167,45 +169,54 @@ char** parse_map(char *buffer)
     int k = 0;
     int count_col = ft_count_col(buffer);
     int count_row = ft_count_row(count_col, buffer);
+    // printf("COL: %i \n ROW: %i\n", count_col, count_row); //temp
     if (count_row == -1){
         return (NULL);
     }
-    char **map = malloc((count_row + 1) * sizeof(char*)); // Allocate exact size + 1 for NULL
+    char **map = malloc(1000 * sizeof(char*)); //THERE IS A PROBLEM HERE WITH LARGE MAPS.
     if (!map){
+        //  write(1, "HERE\n", 5);
         return (NULL);
     }
-    
+    // for(int i = 0; i < 1000; ++i)
+    // {
+    //     map[i] = "\0";
+    // }
     while (k < count_row)
     {
-        map[k] = malloc((count_col + 1) * sizeof(char)); // Allocate exact size + 1 for null terminator
+        map[k] = malloc(1000 * sizeof(char));
         if (!map[k])
         {
             while(k > 0)
             {
-                free(map[--k]);
+                free(map[k]);
+                k--;
             }
             free(map);
+            // write(1, "HERE\n", 5);
             return (NULL);
         }
-        while(buffer[i] && buffer[i] != '\n')
+        // for(int a = 0; a < 1000; ++a)
+        // {
+        //     map[k][a] = '\0';
+        // }
+        while(buffer[i] != '\n')
         {
             map[k][j] = buffer[i];
             i++;
             j++;
         }
-        map[k][j] = '\0'; // Null terminate the string, not newline
+        map[k][j] = '\n';
         j = 0;
         k++;
-        if (buffer[i] == '\n')
-            i++;
+        i++;
     }
-    map[k] = NULL; // Properly terminate the array
     return (map);
 }
 
 int rec_flood_fill(int rows, int col, int x, int y, char **map)
 {
-    if (x >= col || y >= rows || x < 0 || y < 0 || (map[y][x] != 'X'))
+    if (x > col || y > rows || x < 0 || y < 0 || (map[y][x] != 'X'))
         return (0);
    
     map[y][x] = 'A';
@@ -228,7 +239,7 @@ void floodfill(char *buffer, char **map)
     int rows = ft_count_row(col, buffer);
     while(map[y])
     {
-        while (map[y][x] && x < col) // Add boundary check
+        while (map[y][x])
         {
             if (map[y][x] == 'X'){
                 current_island = rec_flood_fill(rows, col, x, y, map);
@@ -243,17 +254,6 @@ void floodfill(char *buffer, char **map)
     }
     ft_itoa(largest_island);
     write(1, "\n", 1);
-}
-
-void ft_free(char **map)
-{
-    int i = 0;
-    while(map[i])
-    {
-        free(map[i]);
-        i++;
-    }
-    free(map);
 }
 
 int main(int argc, char **argv)
@@ -289,10 +289,6 @@ int main(int argc, char **argv)
         //4)Flood fill + count largest_island.
         floodfill(buffer, map);
         // ft_putcharptr(map); //temp
-        
-        // Cleanup
-        ft_free(map);
-        free(buffer);
 
     }
     else
