@@ -29,6 +29,13 @@ void ft_putchar(char c)
     write(1, &c, 1);
 }
 
+void ft_itoa(int n)
+{
+    if(n >= 10)
+        ft_itoa(n / 10);
+    ft_putchar ((n % 10) + '0');
+}
+
 int ft_strlen(char *str)
 {
     int i = 0;
@@ -58,7 +65,7 @@ char* ft_strjoin(char * buffer, char *temp)
         result[i + j] = temp[j];
         j++;
     }
-    result[total_len] = '\0';
+    result[total_len] = '\0'; //Null teminate always.
     free(buffer);
     return (result);
 }
@@ -71,13 +78,13 @@ char* read_file(int fd)
     buffer = malloc(1024 * sizeof(char));
     if (!buffer)
         return (NULL);
-    bytes_read = read(fd, buffer, 1023); // Leave space for null terminator
+    bytes_read = read(fd, buffer, 1023); // Leave space for null terminator. Dont read 1024.
     if (bytes_read < 0)
     {
         free(buffer);
         return (NULL);
     }
-    buffer[bytes_read] = '\0'; // Null terminate
+    buffer[bytes_read] = '\0'; // Null terminate, always. Dont need to increment bytes_read.
     
     temp = malloc(1024 * sizeof(char));
     if (!temp)
@@ -85,7 +92,7 @@ char* read_file(int fd)
         free(buffer);
         return (NULL);
     }
-    while (bytes_read > 0 && bytes_read == 1023) // Only continue if buffer was full
+    while (bytes_read > 0 && bytes_read == 1023) // Only continue if buffer was full and there is still something to read from file.
     {
         bytes_read = read(fd, temp, 1023);
         if (bytes_read <= 0)
@@ -194,20 +201,23 @@ int ft_line_len(char **map)
     return (len);
 }
 
-void flood_fill_recursive(char **map, int row, int col, int max_rows, int line_len, char island_char)
+int flood_fill_recursive(char **map, int row, int col, int max_rows, int line_len, char island_char)
 {
     // Base cases: check bounds and if current cell is not 'X'
     if (row < 0 || row >= max_rows || col < 0 || col >= line_len || map[row][col] != 'X')
-        return;
+        return (0);
     
     // Mark current cell as part of the island
     map[row][col] = island_char;
     
-    // Recursively fill all 4 adjacent cells (up, down, left, right)
-    flood_fill_recursive(map, row - 1, col, max_rows, line_len, island_char); // up
-    flood_fill_recursive(map, row + 1, col, max_rows, line_len, island_char); // down
-    flood_fill_recursive(map, row, col - 1, max_rows, line_len, island_char); // left
-    flood_fill_recursive(map, row, col + 1, max_rows, line_len, island_char); // right
+    // Count this cell and recursively count all connected cells
+    int size = 1;
+    size += flood_fill_recursive(map, row - 1, col, max_rows, line_len, island_char); // up
+    size += flood_fill_recursive(map, row + 1, col, max_rows, line_len, island_char); // down
+    size += flood_fill_recursive(map, row, col - 1, max_rows, line_len, island_char); // left
+    size += flood_fill_recursive(map, row, col + 1, max_rows, line_len, island_char); // right
+    
+    return (size);
 }
 
 char** flood_fill(char **map)
@@ -217,6 +227,9 @@ char** flood_fill(char **map)
     int island_num = 0;
     int max_rows = ft_max_rows(map);
     int line_len = ft_line_len(map);
+    int current_island_size = 0;
+    int biggest_island_size = 0;
+    int biggest_island_id = -1;
 
     while(map[i])
     {
@@ -224,8 +237,16 @@ char** flood_fill(char **map)
         {
             if (map[i][j] == 'X')
             {
-                // Start recursive flood fill from this position
-                flood_fill_recursive(map, i, j, max_rows, line_len, island_num + '0');
+                // Start recursive flood fill from this position and get the size
+                current_island_size = flood_fill_recursive(map, i, j, max_rows, line_len, island_num + '0');
+                
+                // Check if this island is the biggest so far
+                if (current_island_size > biggest_island_size)
+                {
+                    biggest_island_size = current_island_size;
+                    biggest_island_id = island_num;
+                }
+                
                 island_num++;
             }
             j++;
@@ -233,6 +254,17 @@ char** flood_fill(char **map)
         j = 0;
         i++;
     }
+    
+    // Print information about the biggest island
+    if (biggest_island_id != -1)
+    {
+        ft_putstr("Biggest island: ");
+        ft_putchar(biggest_island_id + '0');
+        ft_putstr(" with size ");
+        ft_itoa(biggest_island_size);
+        ft_putchar('\n');
+    }
+    
     return (map);
 }
 
