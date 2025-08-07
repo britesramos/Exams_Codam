@@ -88,6 +88,7 @@ char* read_file(int fd)
             return (NULL);
         }
         bytes_read = read(fd, temp, 4);
+        temp[bytes_read] = '\0'; //null terminate temp.
         buffer = ft_strjoin(buffer, temp);
         if (!buffer)
             return (NULL);  
@@ -153,13 +154,13 @@ char** parse_map(char *buffer)
             free(map);
             return (NULL);
         }
-        while(buffer[i] != '\n')
+        while(buffer[i] && buffer[i] != '\n') //change
         {
             map[j][k] = buffer[i];
             i++;
             k++;
         }
-        map[j][k] = '\n';
+        map[j][k] = '\0'; //null terminate not new line.
         j++;
         k = 0;
         i++;
@@ -255,10 +256,17 @@ int main(int argc, char **argv)
         // ft_putstr(buffer); //temp.
         // write(1, "\n", 1); //temp.
         map = parse_map(buffer);
+        if (!map)
+        {
+            free(buffer);
+            return (ft_map_error());
+        }
         biggest_island = flood_fill(map);
         ft_putcharptr(map);
         ft_itoa(biggest_island);
         write(1, "\n", 1);
+        free(map); //not enough.
+        free(buffer);
     }
     else
         return (ft_map_error());
