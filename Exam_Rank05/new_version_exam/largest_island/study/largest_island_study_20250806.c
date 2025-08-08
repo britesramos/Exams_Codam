@@ -23,6 +23,7 @@ void ft_putcharptr(char **map)
     while(map[i])
     {
         ft_putstr(map[i]);
+        write(1, "\n", 1);
         i++;
     }
 }

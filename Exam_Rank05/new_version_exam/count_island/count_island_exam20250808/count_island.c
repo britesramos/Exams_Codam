@@ -1,18 +1,12 @@
 #include <unistd.h>
-#include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-void ft_putchar(char c)
+int error()
 {
-    write(1, &c, 1);
-}
-
-void ft_itoa(int n)
-{
-    if (n >= 10)
-        ft_itoa(n / 10);
-    ft_putchar((n % 10) + '0');
+    write(1, "\n", 1);
+    return(1);
 }
 
 void ft_putstr(char *str)
@@ -25,16 +19,6 @@ void ft_putstr(char *str)
     }
 }
 
-void ft_putcharptr(char **map)
-{
-    int i = 0;
-    while(map[i])
-    {
-        ft_putstr(map[i]);
-        i++;
-    }
-}
-
 int ft_strlen(char *str)
 {
     int i = 0;
@@ -43,10 +27,23 @@ int ft_strlen(char *str)
     return (i);
 }
 
-int ft_map_error()
+void ft_putstrptr(char **map)
 {
-    ft_putstr("Map Error.\n");
-    return (1);
+    int i = 0;
+    int j = 0;
+    while(map[i])
+    {
+        if (ft_strlen(map[i]) == 0)
+            break ;
+        while (map[i][j])
+        {
+            write(1, &map[i][j], 1);
+            j++;
+        }
+        write(1, "\n", 1);
+        j = 0;
+        i++;
+    }
 }
 
 char* ft_strjoin(char *buffer, char *temp)
@@ -56,10 +53,11 @@ char* ft_strjoin(char *buffer, char *temp)
     int buffer_len = ft_strlen(buffer);
     int temp_len = ft_strlen(temp);
     char *res = NULL;
-    res = malloc(buffer_len + temp_len + 1 * sizeof(char));
+    res = malloc((buffer_len + temp_len + 1) * sizeof(char));
     if (!res)
     {
         free(buffer);
+        free(temp);
         return (NULL);
     }
     while(buffer[i])
@@ -74,17 +72,18 @@ char* ft_strjoin(char *buffer, char *temp)
     }
     res[i + j] = '\0';
     free(buffer);
+    free(temp);
     return(res);
 }
 
-char* readfile(int fd)
+char* read_file(int fd)
 {
+    int bytes_read = 0;
     char *buffer = NULL;
     char *temp = NULL;
-    int bytes_read = 0;
-    buffer = malloc(10 + 1 * sizeof(char));
+    buffer = malloc((10 + 1) * sizeof(char));
     if (!buffer)
-        return (NULL);
+        return(NULL);
     bytes_read = read(fd, buffer, 10);
     if (bytes_read == -1)
     {
@@ -94,80 +93,86 @@ char* readfile(int fd)
     buffer[bytes_read] = '\0';
     while(bytes_read == 10)
     {
-        temp = malloc(10 + 1 * sizeof(char));
+        temp = malloc((10 + 1) * sizeof(char));
         if (!temp)
+        {
+            free(buffer);
             return (NULL);
+        }
         bytes_read = read(fd, temp, 10);
         if (bytes_read == -1)
         {
             free(temp);
             free(buffer);
-            return (NULL);
+            return(NULL);
         }
+        temp[bytes_read] = '\0';
         buffer = ft_strjoin(buffer, temp);
         if (!buffer)
-        {
-            free(temp);
-            return (NULL);
-        }
-        free(temp);
+            return(NULL);
     }
     return (buffer);
 }
 
 int ft_count_cols(char *buffer)
 {
-    int i = 0;
-    while(buffer[i] != '\n')
-        i++;
-    // ft_putstr("COLS: ");
-    // ft_itoa(i);
-    return (i);
+    int cols = 0;
+    int buffer_len = ft_strlen(buffer);
+    while(buffer[cols] != '\n')
+    {
+        cols++;
+        if (cols == buffer_len){
+            return (cols);
+        }
+    }
+    if (cols > 1024)
+        return (-1);
+    return (cols);
 }
 
-int ft_count_rows(int num_cols, char *buffer)
+int ft_count_rows(int cols, char *buffer)
 {
-    int rows = 0;
-    int check_cols = 0;
     int i = 0;
+    int cols_check = 0;
+    int rows = 0;
     while(buffer[i])
     {
-        if (buffer[i] != '\n' && buffer[i] != '.' && buffer[i] != 'X')
-        {
+        if (buffer[i] != '.' && buffer[i] != 'X' && buffer[i] != '\n')
             return (-1);
-        }
         if (buffer[i] == '\n')
         {
-            if (check_cols != num_cols)
+            if (cols_check != cols)
                 return (-1);
-            check_cols = 0; 
+            cols_check = 0;
+            rows++;
         }
-        if (buffer[i] != '\n')
-            check_cols++;
-        rows++;
+        else
+            cols_check++;
         i++;
     }
-    // ft_putstr("ROWS: ");
-    // ft_itoa(rows);
+    if (cols_check == cols)
+        rows++;
     return (rows);
 }
 
 char** parse_map(char *buffer)
 {
+    char **map = NULL;
     int i = 0;
     int j = 0;
     int k = 0;
     int num_cols = ft_count_cols(buffer);
+    if (num_cols == -1)
+        return (NULL);
     int num_rows = ft_count_rows(num_cols, buffer);
     if (num_rows == -1)
         return (NULL);
-    char **map = NULL;
     map = malloc(num_rows + 1 * sizeof(char *));
     if (!map)
         return (NULL);
-    while(buffer[i])
+    while(j < num_rows)
     {
-        map[j] = malloc(num_cols + 1 * sizeof(char));
+        map[j] = malloc((num_cols + 1) * sizeof(char));
         if (!map[j])
         {
             while(j > 0)
@@ -178,14 +183,16 @@ char** parse_map(char *buffer)
             free(map);
             return (NULL);
         }
-        while(buffer[i] && buffer[i] != '\n')
+        while(buffer[i] != '\n')
         {
             map[j][k] = buffer[i];
             k++;
             i++;
+            if (k == ft_strlen(buffer)){
+                map[j][k] = '\0';
+                break ;
+            }
         }
-        map[j][k] = buffer[i];
-        k++;
         map[j][k] = '\0';
         k = 0;
         j++;
@@ -195,93 +202,85 @@ char** parse_map(char *buffer)
     return (map);
 }
 
-int ft_count_map_cols(char **map)
+int ft_count_cols_map(char **map)
 {
     int cols = 0;
-    while(map[0][cols] != '\n')
+    while(map[0][cols])
         cols++;
     return (cols);
 }
 
-int ft_count_map_rows(char **map)
+int ft_count_rows_map(char **map)
 {
     int rows = 0;
     while(map[rows])
         rows++;
-    return (rows);
+    return(rows);
 }
 
-int flood_fill_recursive(char **map, int y, int x, int rows, int cols, int island_id)
+void flood_fill_rec(char **map, int y, int x, int cols, int rows, int island_id)
 {
     if (x < 0 || y < 0 || x >= cols || y >= rows || map[y][x] != 'X')
-        return(0);
+        return ;
     map[y][x] = island_id + '0';
-    int size = 1;
-    size += flood_fill_recursive(map, y - 1, x, rows, cols, island_id);
-    size += flood_fill_recursive(map, y + 1, x, rows, cols, island_id);
-    size += flood_fill_recursive(map, y, x - 1 ,rows, cols, island_id);
-    size += flood_fill_recursive(map, y, x + 1, rows, cols, island_id);
-    return (size);
+    flood_fill_rec(map, y, x - 1, cols, rows, island_id);
+    flood_fill_rec(map, y, x + 1, cols, rows, island_id);
+    flood_fill_rec(map, y - 1, x, cols, rows, island_id);
+    flood_fill_rec(map, y + 1, x, cols, rows, island_id);
 }
 
 void flood_fill(char **map)
 {
-    int cols = ft_count_map_cols(map);
-    int rows = ft_count_map_rows(map);
-    int biggest_island = 0;
-    int current_island = 0;
-    int i = 0;
-    int j = 0;
+    int rows = ft_count_rows_map(map);
+    int cols = ft_count_cols_map(map);
+    int y = 0;
+    int x = 0;
     int island_id = 0;
-    while(map[i])
+    while(map[y])
     {
-        while(map[i][j])
+        while(map[y][x])
         {
-            if (map[i][j] == 'X')
-            {
-                if (island_id > 9)
-                    island_id = 0;
-                current_island = flood_fill_recursive(map, i, j, rows, cols, island_id);
-                if (current_island > biggest_island)
-                    biggest_island = current_island;
+            if (map[y][x] == 'X'){
+                flood_fill_rec(map, y, x, cols, rows, island_id);
                 island_id++;
             }
-            j++;
+            x++;
         }
-        j = 0;
-        i++;
+        x = 0;
+        y++;
     }
-    ft_itoa(biggest_island);
-    write(1, "\n", 1);
 }
 
 int main(int argc, char **argv)
 {
     int fd = 0;
     char *buffer = NULL;
-    char** map = NULL;
-
+    char **map = NULL;
     if (argc == 2)
     {
-        //1)Open file:
         fd = open(argv[1], O_RDONLY);
         if (fd == -1)
-            return (1);
-        //2)Read file into buffer:
-        buffer = readfile(fd);
+            return(1);
+        buffer = read_file(fd);
         if (!buffer)
-            return(ft_map_error());
+        {
+            close(fd);
+            return(error());
+        }
+        close(fd);
+        // write(1, "BUFFER:\n", 8); //temp
         // ft_putstr(buffer); //temp
-        //3)Parse map:
         map = parse_map(buffer);
+        // free(buffer);
+        // ft_putstrptr(map); //temp
         if (!map)
-            return(ft_map_error());
-        free(buffer);
-        //4}Flood fill:
+            return(error());
         flood_fill(map);
-        ft_putcharptr(map);
+        // write(1, "FINAL:\n", 7); //temp
+        ft_putstrptr(map);
+
     }
     else
-        return(ft_map_error());
+        return(error());
     return (0);
 }
