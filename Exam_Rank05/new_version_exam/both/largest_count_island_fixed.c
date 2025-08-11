@@ -266,7 +266,7 @@ int main(int argc, char **argv)
         close(fd);
         if (!buffer)
             return(ft_error());
-        ft_putstr(buffer);
+        // ft_putstr(buffer);
         map = parseMap(buffer);
         free(buffer);
         if (!map)

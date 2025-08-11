@@ -59,7 +59,7 @@ char* ft_strjoin(char *buffer, char *temp)
         res[i + j] = temp[j];
         j++;
     }
-    res[i + j] = '\0';
+    res[i + j] = '\0'; //Dont forget to null terminate.
     free(buffer);
     return (res);
 
@@ -109,7 +109,7 @@ char* readfile(int fd)
 int ft_count_cols(char *buffer)
 {
     int cols = 0;
-    while(buffer[cols] != '\n' && buffer[cols] != '\0') //missing null check.
+    while(buffer[cols] != '\n' && buffer[cols] != '\0') //missing null check(the other version doesnt have this check).
         cols++;
     return (cols);
 }
@@ -135,9 +135,9 @@ int ft_count_rows(int cols, char *buffer)
             check_cols++;
         i++;
     }
-    //Might need extra row.
-    // if (check_cols == cols)
-    //     rows++;
+    //Might need extra row. (The other version has this check.)
+    if (check_cols == cols) //In case it doesnt end with a new line.
+        rows++;
     return (rows);
 }
 
@@ -155,7 +155,7 @@ char** parseMap(char *buffer)
     map = malloc((rows + 1) * sizeof(char *));
     if (!map)
         return (NULL);
-    while(buffer[i])
+    while(j < rows && buffer[i]) //First check added.
     {
         map[j] = malloc((cols + 1) * sizeof(char));
         if (!map[j])
@@ -261,6 +261,7 @@ int main(int argc, char **argv)
     char *buffer = NULL;
     char **map = NULL;
     int biggest_island = 0;
+    int i = 0;
     if (argc == 2)
     {
         fd = open(argv[1], O_RDONLY);
@@ -272,12 +273,21 @@ int main(int argc, char **argv)
             return(ft_error());
         // ft_putstr(buffer); //temp
         map = parseMap(buffer);
+        free(buffer); //Missed this.
         if (!map)
             return(ft_error());
         biggest_island = floodfill(map);
         ft_putcharptr(map);
         write(1, "BIGGEST ISLAND: ", 16);
         ft_itoa(biggest_island);
+
+        //Missing free map.
+        while(map[i])
+        {
+            free(map[i]);
+            i++;
+        }
+        free(map);
     }
     else
         return(ft_error());
