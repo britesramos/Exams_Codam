@@ -49,26 +49,6 @@ int ft_strlen(char *str)
 
 }
 
-// int ft_atoi(char *str) //NOT NEEDED
-// {
-//     int len = ft_strlen(str);
-//     int i = 0;
-//     int j = 0;
-//     int n = 1;
-//     len--;
-//     // putchar(str[len]);
-//     while(len >= 0)
-//     {
-//         j = str[len] - 'O';
-//         i = j * n + i;
-//         n *= 10;
-//         len--;
-//     }
-    
-//     // printf("I: %i\n", i);
-//     return (i);
-// }
-
 char **createMap(int cols, int rows)
 {
     int y = 0;
