@@ -140,7 +140,7 @@ void follow_instructions(char *buffer, char **map, int rows, int cols)
     int is_x_on = 0;
     while(buffer[i])
     {
-        if (is_x_on == 1)
+        if (is_x_on == 1) //Move this check to last.
             map[y][x] = 'O';
         if (buffer[i] == 'x'){
             if (is_x_on == 0)
