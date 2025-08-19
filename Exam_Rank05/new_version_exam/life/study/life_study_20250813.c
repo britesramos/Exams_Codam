@@ -209,40 +209,22 @@ char **ft_iterations(int iterations, char **map, int rows, int cols)
     int count_n = 0;
     while(iterations > 0)
     {   
-        map_temp = creategrid(rows, cols);
+        map_temp = creategrid(rows, cols); //outside the loop.
         if (!map_temp)
             return (NULL);
-        // while(map[i])
-        // {
-        //     while(map[i][j])
-        //     {
-        //         map_temp[i][j] = map[i][j];
-        //         j++;
-        //     }
-        //     j = 0;
-        //     i++;
-        // }
-        // i = 0;
-        // j = 0;
         while(map[y])
         {
             while(map[y][x])
             {
                 count_n = ft_count_n(map, y, x, rows, cols);
-                // putchar(count_n + 'O');
                 if (map[y][x] == 'O')
                 {
-                    if (count_n == 2 || count_n == 3){
-                        // write(1, "HERE2\n", 5);
-                        map_temp[y][x] = 'O'; 
-                    }
+                    if (count_n == 2 || count_n == 3)
+                        map_temp[y][x] = 'O';
                 }
                 else{
                     if (count_n == 3)
-                    {
-                        // write(1, "HERE\n", 5);
                         map_temp[y][x] = 'O';
-                    }
                 }
                 x++;
             }
@@ -250,8 +232,6 @@ char **ft_iterations(int iterations, char **map, int rows, int cols)
             y++;
         }
         y = 0;
-        // ft_printMap(map);
-        // ft_printMap(map_temp);
         while(map_temp[i])
         {
             while(map_temp[i][j])
@@ -263,7 +243,6 @@ char **ft_iterations(int iterations, char **map, int rows, int cols)
             i++;
         }
         i = 0;
-        // j = 0;
         iterations--;
     }
     free(map_temp);

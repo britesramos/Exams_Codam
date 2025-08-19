@@ -145,7 +145,7 @@ char **parseMap(char *buffer)
     int cols = ft_count_cols(buffer);
     int rows = ft_count_rows(cols, buffer);
     if (rows == -1)
-    return (NULL);
+        return (NULL);
     char **map = NULL;
     map = malloc((rows + 1) * sizeof(char *));
     if (!map)
