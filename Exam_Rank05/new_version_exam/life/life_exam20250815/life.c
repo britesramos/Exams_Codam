@@ -136,7 +136,7 @@ void applyMovements(char *buffer, char **map, int cols, int rows)
     int x_on = 0;
     while(buffer[i])
     {
-        if (x_on == 1)
+        if (x_on == 1) //Move this to last if statment.
             map[y][x] = 'O';
         if (buffer[i] == 'x')
         {
