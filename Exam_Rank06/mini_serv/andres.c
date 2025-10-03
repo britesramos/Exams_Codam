@@ -6,16 +6,19 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
 typedef struct s_client {
     int fd;
     int id;
     char *buf;
 } t_client;
+
 t_client *clients = NULL;
 char msg_to_send[1024];
 int max_fd = 0;
 int next_id = 0;
 fd_set activefds, readfds, writefds;
+
 int ft_strlen(char *s)
 {
     int i = 0;
@@ -25,12 +28,14 @@ int ft_strlen(char *s)
     }
     return i;
 }
+
 //why can't I exit in a non void function?
 int fatal()
 {
     write(2, "Fatal error\n",  ft_strlen("Fatal error\n"));
     exit(1);
 }
+
 void send_all(int exep_fd, char *msg)
 {
     for (int i = 0; clients && clients[i].fd != -1; i++)
@@ -41,6 +46,7 @@ void send_all(int exep_fd, char *msg)
         }
     }
 }
+
 int get_client_idx(int client_fd)
 {
     for (int i = 0; clients && clients[i].fd != -1; i++)
@@ -50,6 +56,7 @@ int get_client_idx(int client_fd)
     }
     return -1;
 }
+
 void add_client(int client_fd)
 {
     int count = 0;
@@ -71,6 +78,7 @@ void add_client(int client_fd)
     sprintf(msg_to_send, "server: client %d just arrived\n", clients[count].id);
     send_all(client_fd, msg_to_send);
 }
+
 void remove_client(int client_fd)
 {
     int idx = get_client_idx(client_fd);
@@ -94,10 +102,12 @@ void remove_client(int client_fd)
     if(new_arr || count == 0)
         clients = new_arr;
 }
-int extract_message(char **buf, char **msg)
+
+int extract_message(char **buf, char **msg) //In main.c
 {
     char    *newbuf;
     int i;
+
     *msg = 0;
     if (*buf == 0)
         return (0);
@@ -107,8 +117,8 @@ int extract_message(char **buf, char **msg)
         if ((*buf)[i] == '\n')
         {
             newbuf = calloc(1, sizeof(*newbuf) * (ft_strlen(*buf + i + 1) + 1));
-            if (!newbuf)
-                fatal();
+            if (!newbuf) //Dif main.c
+                fatal(); //Dif main.c
             strcpy(newbuf, *buf + i + 1);
             *msg = *buf;
             (*msg)[i + 1] = 0;
@@ -119,19 +129,19 @@ int extract_message(char **buf, char **msg)
     }
     return (0);
 }
-char *str_join(char *buf, char *add)
+
+char *str_join(char *buf, char *add) //In main.c
 {
     char    *newbuf;
     int     len;
+
     if (buf == 0)
         len = 0;
     else
         len = ft_strlen(buf);
     newbuf = malloc(sizeof(*newbuf) * (len + ft_strlen(add) + 1));
-    if (!newbuf)
-    {
-        fatal();
-    }
+    if (!newbuf) //Dif main.c
+        fatal(); //Dif main.c
     newbuf[0] = 0;
     if (buf != 0)
         strcat(newbuf, buf);
@@ -139,6 +149,7 @@ char *str_join(char *buf, char *add)
     strcat(newbuf, add);
     return (newbuf);
 }
+
 int main(int argc, char *argv[])
 {
     struct sockaddr_in servaddr, cli;
