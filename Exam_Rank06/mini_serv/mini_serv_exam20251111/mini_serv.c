@@ -1,9 +1,9 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <strings.h>
+#include <string.h>
 
 typedef struct t_client{
     int fd;
@@ -12,14 +12,14 @@ typedef struct t_client{
 }s_client;
 
 typedef struct t_data{
-    int port;
     int server_fd;
+    int port;
     int max_fd;
     int next_id;
     struct t_client *clients;
 }s_data;
 
-int extract_message(char **buf, char **msg)
+int extract_message(char **buf, char **msg) //FROM MAIN.C
 {
 	char	*newbuf;
 	int	i;
@@ -46,7 +46,7 @@ int extract_message(char **buf, char **msg)
 	return (0);
 }
 
-char *str_join(char *buf, char *add)
+char *str_join(char *buf, char *add) //FROM MAIN.C
 {
 	char	*newbuf;
 	int		len;
@@ -66,51 +66,51 @@ char *str_join(char *buf, char *add)
 	return (newbuf);
 }
 
-
-int ft_system_call_error(struct t_data *data){
+int ft_system_call_fail(struct t_data *data){
     if(data){
         if(data->clients)
             free(data->clients);
         free(data);
     }
-    write(1, "Fatal error\n", 12);
+    write(2, "Fatal error\n", 12);
     return (1);
 }
 
 int start_server(struct t_data *data){
     struct sockaddr_in servaddr;
-    bzero(&servaddr, sizeof(servaddr)); 
+    bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET; 
 	servaddr.sin_addr.s_addr = htonl(2130706433); //127.0.0.1
 	servaddr.sin_port = htons(data->port);
+
     data->server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    data->max_fd = data->server_fd; //MISSED THIS! VERY IMPORTANT!
-    if(data->server_fd == -1)
+    if (data->server_fd == -1)
         return (1);
-    if(bind(data->server_fd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) != 0)
+    if ((bind(data->server_fd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0)
         return (1);
-    if(listen(data->server_fd, 10) != 0)
+    if (listen(data->server_fd, 10) != 0)
         return (1);
+    if(data->server_fd > data->max_fd)
+        data->max_fd = data->server_fd;
     return (0);
 }
 
-void broadcast(struct t_data *data, int client_fd, char *msg){
-    for(int i = 0; data->clients && data->clients[i].fd != -1; i++){
-        if(data->clients[i].fd != client_fd){
+void broadcast_msg(struct t_data *data, char *msg, int client_fd){
+   for(int i = 0; data->clients && data->clients[i].fd != -1; i++){
+        if(data->clients[i].fd != client_fd)
             send(data->clients[i].fd, msg, strlen(msg), 0);
-        }
-    }
+   }
 }
 
 int add_client(struct t_data *data, int client_fd){
     int count = 0;
-    char msg[4100];
+    char msg[100];
     while(data->clients && data->clients[count].fd != -1)
         count++;
     struct t_client *new = realloc(data->clients, sizeof(s_client) * (count + 2));
     if(!new)
         return (1);
-    data->clients = new;
+    data->clients = new; //MISSED THIS!
     data->clients[count].fd = client_fd;
     data->clients[count].id = data->next_id;
     data->next_id++;
@@ -119,15 +119,12 @@ int add_client(struct t_data *data, int client_fd){
     data->clients[count + 1].fd = -1;
     data->clients[count + 1].id = -1;
     data->clients[count + 1].buf = NULL;
-    
-    //MISSED THIS:
-    if (client_fd > data->max_fd){
+
+    if(data->max_fd < client_fd)
         data->max_fd = client_fd;
-    }
 
     sprintf(msg, "server: client %d just arrived\n", data->clients[count].id);
-    broadcast(data, client_fd, msg);
-
+    broadcast_msg(data, msg, client_fd);
     return (0);
 }
 
@@ -135,60 +132,63 @@ void remove_client(struct t_data *data, int client_fd){
     int idx = -1;
     int i = 0;
     int j = 0;
-    char msg[4100];
+    char msg[100];
     while(data->clients && data->clients[i].fd != -1){
         if(data->clients[i].fd == client_fd)
             idx = i;
         i++;
     }
     if(idx == -1)
-        return ;
+        return;
     sprintf(msg, "server: client %d just left\n", data->clients[idx].id);
-    broadcast(data, client_fd, msg);
+    broadcast_msg(data, msg, client_fd);
     close(data->clients[idx].fd);
     free(data->clients[idx].buf);
+
     while(data->clients && data->clients[idx + j].fd != -1){
-        data->clients[idx + j] =  data->clients[idx + j + 1];
+        data->clients[idx + j] = data->clients[idx + j + 1];
         j++;
     }
-
 }
 
 int main_loop(struct t_data *data){
     fd_set readfds;
-    int new_client_fd = 0;
+    int new_client_fd = -1;
     int bytes_read = 0;
-    char buffer[4100];
-    char msg[4100];
+    char buffer[200000];
+    char msg[200000];
     while(1){
         FD_ZERO(&readfds);
         FD_SET(data->server_fd, &readfds);
         for(int i = 0; data->clients && data->clients[i].fd != -1; i++){
             FD_SET(data->clients[i].fd, &readfds);
         }
+
         if(select(data->max_fd + 1, &readfds, NULL, NULL, NULL) < 0)
             continue ;
+
         if(FD_ISSET(data->server_fd, &readfds)){
             new_client_fd = accept(data->server_fd, NULL, NULL);
-            if (new_client_fd == -1)
+            if(new_client_fd == -1)
                 return (1);
             if(add_client(data, new_client_fd) == 1)
                 return (1);
         }
-        for(int j = 0; data->clients && data->clients[j].fd != -1; j++){
-            if(FD_ISSET(data->clients[j].fd, &readfds)){
-                bytes_read = recv(data->clients[j].fd, buffer, 4099, 0);
-                if (bytes_read <= 0){
-                    remove_client(data, data->clients[j].fd);
-                    j--; //MISSED THIS!
+
+        for(int i = 0; data->clients && data->clients[i].fd != -1; i++){
+            if(FD_ISSET(data->clients[i].fd, &readfds)){
+                bytes_read = recv(data->clients[i].fd, buffer, 199999, 0);
+                if(bytes_read == 0){
+                    remove_client(data, data->clients[i].fd);
+                    i--;
                 }
                 else{
-                    buffer[bytes_read] = '\0'; //MISSED THIS!
+                    buffer[bytes_read] = '\0';
+                    data->clients[i].buf = str_join(data->clients[i].buf, buffer);
                     char *extracted_msg = NULL;
-                    data->clients[j].buf = str_join(data->clients[j].buf, buffer);
-                    while(extract_message(&data->clients[j].buf, &extracted_msg)){
-                        sprintf(msg, "client %d: %s", data->clients[j].id, extracted_msg);
-                        broadcast(data, data->clients[j].fd, msg);
+                    while(extract_message(&data->clients[i].buf, &extracted_msg)){
+                        sprintf(msg, "client %d: %s", data->clients[i].id, extracted_msg);
+                        broadcast_msg(data, msg, data->clients[i].fd);
                         free(extracted_msg);
                         extracted_msg = NULL;
                     }
@@ -196,9 +196,7 @@ int main_loop(struct t_data *data){
             }
         }
     }
-    return (0);
 }
-
 
 int main(int argc, char **argv){
     if(argc != 2){
@@ -206,24 +204,23 @@ int main(int argc, char **argv){
         return (1);
     }
     struct t_data *data = malloc(sizeof(s_data));
-    if (!data)
-        return (ft_system_call_error(NULL));
+    if(!data)
+        return(ft_system_call_fail(NULL));
     data->port = atoi(argv[1]);
-    data->server_fd = 0;
-    data->max_fd = 0;
+    data->server_fd = -1;
+    data->max_fd = -1;
     data->next_id = 0;
-    data->clients = malloc(sizeof(s_client));
-    if (!data->clients)
-        return (ft_system_call_error(data));
+    struct t_client *client = malloc(sizeof(s_client));
+    if(!client)
+        return(ft_system_call_fail(data));
+    data->clients = client;
     data->clients[0].fd = -1;
-    data->clients[0].id = -1;
+    data->clients[0].id = 0;
     data->clients[0].buf = NULL;
     if(start_server(data) == 1)
-        return (ft_system_call_error(data));
-    // else
-    //     printf("SUCCESS\n");
+        return (ft_system_call_fail(data));
     if(main_loop(data) == 1)
-        return(ft_system_call_error(data));
+        return (1);
 
     return (0);
 }
